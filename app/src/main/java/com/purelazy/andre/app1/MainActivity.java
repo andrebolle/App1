@@ -11,9 +11,7 @@ public class MainActivity extends Activity {
 
      static class MyToast {
         static void toast(Context context, String string) {
-            //Context context = getApplicationContext();
-            //CharSequence text;
-            //text = string;
+
             int duration = Toast.LENGTH_SHORT;
 
             Toast toast = Toast.makeText(context, string, duration);
@@ -25,12 +23,14 @@ public class MainActivity extends Activity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // What does this do?
         super.onCreate(savedInstanceState);
-        MyToast.toast(this, "Hello");
+        MyToast.toast(this, "onCreate");
 
-        // Create a GLSurfaceView instance and set it
-        // as the ContentView for this Activity
+        // Create a GLSurfaceview
         mGLView = new MyGLSurfaceView(this);
+
+        // Set the surface view.
         setContentView(mGLView);
     }
 

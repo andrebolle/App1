@@ -1,18 +1,17 @@
 
 package com.purelazy.andre.app1;
 
+import android.opengl.GLES20;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
-import android.opengl.GLES20;
-import android.util.Log;
-
 /**
  * A two-dimensional square for use as a drawn object in OpenGL ES 2.0.
  */
-public class Square {
+public class Line {
     private static final String TAG = "Square";
 
 
@@ -45,30 +44,28 @@ public class Square {
     // number of coordinates per vertex in this array
     static final int COORDS_PER_VERTEX = 3;
 
-    static float squareCoords[] = {
-            -0.5f,  0.5f, 0.0f,   // top left
-            -0.5f, -0.5f, 0.0f,   // bottom left
-            0.5f, -0.5f, 0.0f,   // bottom right
-            0.5f,  0.5f, 0.0f }; // top right
+    static float lineCoords[] = {
+            0f, 0f, 0f,
+            1f, 0f, 0f};
 
-    private final short drawOrder[] = { 0, 1, 2, 0, 2, 3 }; // order to draw vertices
+    private final short drawOrder[] = {0, 1}; // order to draw vertices
 
     private final int vertexStride = COORDS_PER_VERTEX * 4; // 4 bytes per vertex
 
-    float color[] = { 0.2f, 0.709803922f, 0.898039216f, 1.0f };
+    float color[] = {0.2f, 0.709803922f, 0.898039216f, 1.0f};
 
     /**
      * Sets up the drawing object data for use in an OpenGL ES context.
      */
-    public Square() {
+    public Line() {
 
         // initialize vertex byte buffer for shape coordinates
         ByteBuffer bb = ByteBuffer.allocateDirect(
                 // (# of coordinate values * 4 bytes per float)
-                squareCoords.length * 4);
+                lineCoords.length * 4);
         bb.order(ByteOrder.nativeOrder());
         vertexBuffer = bb.asFloatBuffer();
-        vertexBuffer.put(squareCoords);
+        vertexBuffer.put(lineCoords);
         vertexBuffer.position(0);
 
         // initialize byte buffer for the draw list
@@ -98,10 +95,12 @@ public class Square {
      * Encapsulates the OpenGL ES instructions for drawing this shape.
      *
      * @param mvpMatrix - The Model View Project matrix in which to draw
-     * this shape.
+     *                  this shape.
      */
+
     public void draw(float[] mvpMatrix) {
         //Log.e(TAG, ": Hello ");
+
 
         // Add program to OpenGL environment
         GLES20.glUseProgram(mProgram);
@@ -136,7 +135,7 @@ public class Square {
 
         // Draw the square
         GLES20.glDrawElements(
-                GLES20.GL_TRIANGLES, drawOrder.length,
+                GLES20.GL_LINE_STRIP, drawOrder.length,
                 GLES20.GL_UNSIGNED_SHORT, drawListBuffer);
 
         // Disable vertex array

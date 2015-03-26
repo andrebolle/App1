@@ -35,14 +35,28 @@ import android.util.Log;
 public class MyGLRenderer implements GLSurfaceView.Renderer {
 
     private static final String TAG = "MyGLRenderer";
+
     private Triangle mTriangle;
     private Square   mSquare;
+    private Line     mLine;
 
     // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
     private final float[] mMVPMatrix = new float[16];
-    private final float[] mProjectionMatrix = new float[16];
-    private final float[] mViewMatrix = new float[16];
+    private final float[] P = new float[16];
+    private final float[] V = new float[16];
+    private final float[] PV = new float[16];
+    private final float[] PVM = new float[16];
+
+    float[] T = new float[16]; // Translation
+    float[] R = new float[16]; // Rotation
+    float[] S = new float[16]; // Scale
+
+    float[] TR = new float[16]; // Scale
+    float[] M = new float[16]; // Model (Scale, Rotate, Translate)
+
     private final float[] mRotationMatrix = new float[16];
+
+    float aspectRatio;
 
     private float mAngle;
 
@@ -54,23 +68,121 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
         mTriangle = new Triangle();
         mSquare   = new Square();
+        mLine     = new Line();
     }
 
+    public static void gluPerspective(float[] m, float fovy, float aspect,
+                                      float zNear, float zFar) {
+        float top = zNear * (float) Math.tan(fovy * (Math.PI / 360.0));
+        float bottom = -top;
+        float left = bottom * aspect;
+        float right = top * aspect;
+        Matrix.frustumM(m, 0, left, right, bottom, top, zNear, zFar);
+    }
+
+
+
     @Override
-    public void onDrawFrame(GL10 unused) {
+    public void onDrawFrame(GL10 gl) {
+
+
+        //Matrix.frustumM(mProjectionMatrix, 0, -aspectRatio, aspectRatio, -1f, 1f, 0.2f, 7f);
+
+        // frustumM and gluPerspective
+
+
+        //Log.e(TAG, ": near " + near);
+
+
         float[] scratch = new float[16];
+        float[] rotationMatrix = new float[16];
+        float[] modelMatrix = new float[16];
+        float[] VM = new float[16];
 
         // Draw background color
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
-        // Set the camera position (View matrix)
-        Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+        /*
+         * Defines a viewing transformation in terms of an eye point, a center of
+         * view, and an up vector.
+         *
+         *  rm returns the result
+         *  rmOffset index into rm where the result matrix starts
+         *  eyeX, eyeY, eyeZ, atX, atY, atZ, upX, upY, upZ
+         */
 
-        // Calculate the projection and view transformation
-        Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
+        // FOV, aspect, near & far clipping planes
+        gluPerspective(P, 120f, aspectRatio, 1f, 70f);
+        // Stand at the +Z, looking at origin
+        Matrix.setLookAtM(V, 0,
+                0f, 0f, 7f,          // eye
+                0f, 0f, 0f,         // loot at point
+                0f, 1f, 0f);        // Up vector
 
-        // Draw square
-        mSquare.draw(mMVPMatrix);
+        /*
+        Matrix.setIdentityM(modelMatrix, 0);
+
+        // The matrix M, that contains all translations, rotations or scaling,
+        // applied to an object is named the model matrix in OpenGL.
+
+        for (int y=1; y < 11; y++) {
+            //Matrix.setIdentityM(translateMatrix, 0);
+            //Matrix.translateM(translateMatrix, 0, 0f, 1.1f, 0f);
+
+
+            for (int x = 1; x < 21; x++) {
+
+                // Move your object to the right position (model transformation)
+                Matrix.translateM(modelMatrix, 0, 1.1f, 0f, 0f);
+
+                // Then transform it to camera space (view transformation)
+                Matrix.multiplyMM(view_modelMatrix, 0, viewMatrix, 0, modelMatrix, 0);
+
+                // Apply perspective projection
+                Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, view_modelMatrix, 0);
+                mSquare.draw(mMVPMatrix);
+
+            }
+            Matrix.translateM(modelMatrix, 0, -22f, -1.1f, 0f);
+        }
+*/
+        Matrix.multiplyMM(PV, 0, P, 0, V, 0);
+
+        mLine.draw(PV);
+
+        Matrix.setIdentityM(S, 0);
+        Matrix.scaleM(S, 0, 0.5f, 0.5f, 0.5f);
+
+        Matrix.setIdentityM(R, 0);
+        Matrix.rotateM(R, 0, 135f, 0f, 0f, 1f);
+
+        Matrix.setIdentityM(T, 0);
+        Matrix.translateM(T, 0, 1f, 0f, 0f);
+
+        Matrix.multiplyMM(TR, 0, T, 0, R, 0);
+        Matrix.multiplyMM(M, 0, TR, 0, S, 0);
+        Matrix.multiplyMM(PVM, 0, PV, 0, M, 0);
+
+        mLine.draw(PVM);
+
+        Matrix.setIdentityM(S, 0);
+        Matrix.scaleM(S, 0, 0.5f, 0.5f, 0.5f);
+
+        Matrix.setIdentityM(R, 0);
+        Matrix.rotateM(R, 0, -135f, 0f, 0f, 1f);
+
+        Matrix.setIdentityM(T, 0);
+        Matrix.translateM(T, 0, 1f, 0f, 0f);
+
+        Matrix.multiplyMM(TR, 0, T, 0, R, 0);
+        Matrix.multiplyMM(M, 0, TR, 0, S, 0);
+        Matrix.multiplyMM(PVM, 0, PV, 0, M, 0);
+
+        mLine.draw(PVM);
+
+
+
+
 
         // Create a rotation for the triangle
 
@@ -79,16 +191,36 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         // long time = SystemClock.uptimeMillis() % 4000L;
         // float angle = 0.090f * ((int) time);
 
-        Matrix.setRotateM(mRotationMatrix, 0, mAngle, 0, 0, 1.0f);
+        //Matrix.setRotateM(mRotationMatrix, 0, mAngle, 0, 0, 1.0f);
 
         // Combine the rotation matrix with the projection and camera view
         // Note that the mMVPMatrix factor *must be first* in order
         // for the matrix multiplication product to be correct.
-        Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mRotationMatrix, 0);
+
+        //Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mRotationMatrix, 0);
 
         // Draw triangle
-        mTriangle.draw(scratch);
+
+        //mTriangle.draw(scratch);
     }
+
+    /*
+    The BIG Picture & Normalized device coordinates
+
+    OpenGL 2.0 does not know anything about your coordinate space or
+    about the matrices that you’re using. OpenGL only requires that, when all of your
+    transformations are done, coordinates are in the range -1 to +1.
+    Normalized Device Coordinates (NDC).
+
+    These coordinates range from -1 to +1 on each axis, regardless
+    of the shape or size of the actual screen. The bottom left
+    corner will be at (-1, -1), and the top right corner will be at (1, 1).
+
+    OpenGL will then map these coordinates onto the viewport that was
+    configured with glViewport. The underlying operating system’s
+    window manager will then map that viewport to the appropriate place on the screen.
+
+     */
 
     @Override
     public void onSurfaceChanged(GL10 unused, int width, int height) {
@@ -96,12 +228,20 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         // such as screen rotation
         GLES20.glViewport(0, 0, width, height);
 
-        float ratio = (float) width / height;
+        aspectRatio = (float) width / height;
 
         // this projection matrix is applied to object coordinates
         // in the onDrawFrame() method
         //Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
-        Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 2, 7);
+        /*
+         frustumM(float[] matrix, int offsetIntroMatrix,
+                  float left,   float right,
+                  float bottom, float top,
+                  float near,   float far)
+
+         Defines a projection matrix in terms of six clip planes.
+         */
+        Matrix.frustumM(P, 0, -aspectRatio, aspectRatio, -1, 1, 2, 7);
         //Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
 
     }
