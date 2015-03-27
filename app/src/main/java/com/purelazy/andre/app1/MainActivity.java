@@ -32,7 +32,11 @@ public class MainActivity extends Activity {
         ActivityManager am = (ActivityManager)
                 getSystemService(Context.ACTIVITY_SERVICE);
         ConfigurationInfo info = am.getDeviceConfigurationInfo();
-        if (info.reqGlEsVersion >= 0x20000) MyToast.toast(this, "Using OpenGL ES 2.0");
+        if (info.reqGlEsVersion >= 0x20000) {
+            MyToast.toast(this, "OpenGL ES 2.0 is supported on this device. Cool.");
+        } else {
+            MyToast.toast(this, "Sorry, OpenGL ES 2.0 is not supported on this device.");
+        }
 
         // Create a GLSurfaceview
         mGLView = new MyGLSurfaceView(this);
