@@ -2,7 +2,9 @@
 package com.purelazy.andre.app1;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.Context;
+import android.content.pm.ConfigurationInfo;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.widget.Toast;
@@ -25,7 +27,12 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         // What does this do?
         super.onCreate(savedInstanceState);
-        MyToast.toast(this, "onCreate");
+
+        // Check for OpenGL ES 2.0
+        ActivityManager am = (ActivityManager)
+                getSystemService(Context.ACTIVITY_SERVICE);
+        ConfigurationInfo info = am.getDeviceConfigurationInfo();
+        if (info.reqGlEsVersion >= 0x20000) MyToast.toast(this, "Using OpenGL ES 2.0");
 
         // Create a GLSurfaceview
         mGLView = new MyGLSurfaceView(this);

@@ -7,7 +7,6 @@ import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
 import android.opengl.GLES20;
-import android.util.Log;
 
 /**
  * A two-dimensional square for use as a drawn object in OpenGL ES 2.0.
@@ -35,48 +34,48 @@ public class Square {
                     "  gl_FragColor = vColor;" +
                     "}";
 
-    private final FloatBuffer vertexBuffer;
-    private final ShortBuffer drawListBuffer;
-    private final int mProgram;
+    public FloatBuffer vertexBuffer;
+    public ShortBuffer drawListBuffer;
+
+    private int mProgram;
     private int mPositionHandle;
     private int mColorHandle;
     private int mMVPMatrixHandle;
 
     // number of coordinates per vertex in this array
-    static final int COORDS_PER_VERTEX = 3;
+    private static final int FLOATS_PER_VERTEX = 3;
+    private static final int BYTES_PER_FLOAT = 4;
+    private static final int BYTES_PER_SHORT = 2;
 
-    static float squareCoords[] = {
-            -0.5f,  0.5f, 0.0f,   // top left
+    private static final float squareCoords[] = {
+            -0.5f, 0.5f, 0.0f,    // top left
             -0.5f, -0.5f, 0.0f,   // bottom left
-            0.5f, -0.5f, 0.0f,   // bottom right
-            0.5f,  0.5f, 0.0f }; // top right
+            0.5f, -0.5f, 0.0f,    // bottom right
+            0.5f, 0.5f, 0.0f};    // top right
 
-    private final short drawOrder[] = { 0, 1, 2, 0, 2, 3 }; // order to draw vertices
+    private static final short drawOrder[] = {0, 1, 2, 0, 2, 3}; // order to draw vertices
 
-    private final int vertexStride = COORDS_PER_VERTEX * 4; // 4 bytes per vertex
+    private final int vertexStride = FLOATS_PER_VERTEX * BYTES_PER_FLOAT; // 4 bytes per vertex
 
-    float color[] = { 0.2f, 0.709803922f, 0.898039216f, 1.0f };
+    float color[] = {1f, 1f, 0f, 1.0f};
 
     /**
      * Sets up the drawing object data for use in an OpenGL ES context.
      */
     public Square() {
 
+
         // initialize vertex byte buffer for shape coordinates
-        ByteBuffer bb = ByteBuffer.allocateDirect(
-                // (# of coordinate values * 4 bytes per float)
-                squareCoords.length * 4);
-        bb.order(ByteOrder.nativeOrder());
-        vertexBuffer = bb.asFloatBuffer();
+        ByteBuffer vertBuf = ByteBuffer.allocateDirect(squareCoords.length * BYTES_PER_FLOAT);
+        vertBuf.order(ByteOrder.nativeOrder());
+        vertexBuffer = vertBuf.asFloatBuffer();
         vertexBuffer.put(squareCoords);
         vertexBuffer.position(0);
 
         // initialize byte buffer for the draw list
-        ByteBuffer dlb = ByteBuffer.allocateDirect(
-                // (# of coordinate values * 2 bytes per short)
-                drawOrder.length * 2);
-        dlb.order(ByteOrder.nativeOrder());
-        drawListBuffer = dlb.asShortBuffer();
+        ByteBuffer indexBuf = ByteBuffer.allocateDirect(drawOrder.length * BYTES_PER_SHORT);
+        indexBuf.order(ByteOrder.nativeOrder());
+        drawListBuffer = indexBuf.asShortBuffer();
         drawListBuffer.put(drawOrder);
         drawListBuffer.position(0);
 
@@ -92,13 +91,22 @@ public class Square {
         GLES20.glAttachShader(mProgram, vertexShader);   // add the vertex shader to program
         GLES20.glAttachShader(mProgram, fragmentShader); // add the fragment shader to program
         GLES20.glLinkProgram(mProgram);                  // create OpenGL program executables
+
+
+
+        /*
+        Utils.programSetup(squareCoords, vertexBuffer,
+                drawOrder, drawListBuffer,
+                vertexShaderCode, fragmentShaderCode,
+                mProgram);
+        */
     }
 
     /**
      * Encapsulates the OpenGL ES instructions for drawing this shape.
      *
      * @param mvpMatrix - The Model View Project matrix in which to draw
-     * this shape.
+     *                  this shape.
      */
     public void draw(float[] mvpMatrix) {
         //Log.e(TAG, ": Hello ");
@@ -114,7 +122,7 @@ public class Square {
 
         // Prepare the triangle coordinate data
         GLES20.glVertexAttribPointer(
-                mPositionHandle, COORDS_PER_VERTEX,
+                mPositionHandle, FLOATS_PER_VERTEX,
                 GLES20.GL_FLOAT, false,
                 vertexStride, vertexBuffer);
 

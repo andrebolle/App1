@@ -119,33 +119,26 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
                 0f, 0f, 0f,         // loot at point
                 0f, 1f, 0f);        // Up vector
 
-        /*
-        Matrix.setIdentityM(modelMatrix, 0);
 
-        // The matrix M, that contains all translations, rotations or scaling,
-        // applied to an object is named the model matrix in OpenGL.
+        Matrix.setIdentityM(M, 0);
+
+/*
 
         for (int y=1; y < 11; y++) {
-            //Matrix.setIdentityM(translateMatrix, 0);
-            //Matrix.translateM(translateMatrix, 0, 0f, 1.1f, 0f);
-
-
             for (int x = 1; x < 21; x++) {
 
                 // Move your object to the right position (model transformation)
-                Matrix.translateM(modelMatrix, 0, 1.1f, 0f, 0f);
-
-                // Then transform it to camera space (view transformation)
-                Matrix.multiplyMM(view_modelMatrix, 0, viewMatrix, 0, modelMatrix, 0);
-
-                // Apply perspective projection
-                Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, view_modelMatrix, 0);
-                mSquare.draw(mMVPMatrix);
+                Matrix.translateM(M, 0, 1.1f, 0f, 0f);
+                Matrix.multiplyMM(VM, 0, V, 0, M, 0);
+                Matrix.multiplyMM(PVM, 0, P, 0, VM, 0);
+                mSquare.draw(PVM);
 
             }
-            Matrix.translateM(modelMatrix, 0, -22f, -1.1f, 0f);
+            Matrix.translateM(M, 0, -22f, -1.1f, 0f);
         }
+
 */
+        // Draw a litte arrow!
         Matrix.multiplyMM(PV, 0, P, 0, V, 0);
 
         mLine.draw(PV);
@@ -179,9 +172,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         Matrix.multiplyMM(PVM, 0, PV, 0, M, 0);
 
         mLine.draw(PVM);
-
-
-
 
 
         // Create a rotation for the triangle
