@@ -1,46 +1,23 @@
 
 package com.purelazy.andre.app1;
 
+import android.opengl.GLES20;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
-import android.opengl.GLES20;
-
 /**
  * A two-dimensional square for use as a drawn object in OpenGL ES 2.0.
  */
 public class Square {
-    private static final String TAG = "Square";
-
-
-    private final String vertexShaderCode =
-            // This matrix member variable provides a hook to manipulate
-            // the coordinates of the objects that use this vertex shader
-            "uniform mat4 uMVPMatrix;" +
-                    "attribute vec4 vPosition;" +
-                    "void main() {" +
-                    // The matrix must be included as a modifier of gl_Position.
-                    // Note that the uMVPMatrix factor *must be first* in order
-                    // for the matrix multiplication product to be correct.
-                    "  gl_Position = uMVPMatrix * vPosition;" +
-                    "}";
-
-    private final String fragmentShaderCode =
-            "precision mediump float;" +
-                    "uniform vec4 vColor;" +
-                    "void main() {" +
-                    "  gl_FragColor = vColor;" +
-                    "}";
+    // private static final String TAG = "Square";
 
     public FloatBuffer vertexBuffer;
     public ShortBuffer drawListBuffer;
 
     private int mProgram;
-    private int mPositionHandle;
-    private int mColorHandle;
-    private int mMVPMatrixHandle;
 
     // number of coordinates per vertex in this array
     private static final int FLOATS_PER_VERTEX = 3;
@@ -55,7 +32,6 @@ public class Square {
 
     private static final short drawOrder[] = {0, 1, 2, 0, 2, 3}; // order to draw vertices
 
-    private final int vertexStride = FLOATS_PER_VERTEX * BYTES_PER_FLOAT; // 4 bytes per vertex
 
     float color[] = {1f, 1f, 0f, 1.0f};
 
@@ -63,6 +39,25 @@ public class Square {
      * Sets up the drawing object data for use in an OpenGL ES context.
      */
     public Square() {
+
+        String vertexShaderCode =
+                // This matrix member variable provides a hook to manipulate
+                // the coordinates of the objects that use this vertex shader
+                "uniform mat4 uMVPMatrix;" +
+                        "attribute vec4 vPosition;" +
+                        "void main() {" +
+                        // The matrix must be included as a modifier of gl_Position.
+                        // Note that the uMVPMatrix factor *must be first* in order
+                        // for the matrix multiplication product to be correct.
+                        "  gl_Position = uMVPMatrix * vPosition;" +
+                        "}";
+
+        String fragmentShaderCode =
+                "precision mediump float;" +
+                        "uniform vec4 vColor;" +
+                        "void main() {" +
+                        "  gl_FragColor = vColor;" +
+                        "}";
 
 
         // initialize vertex byte buffer for shape coordinates
@@ -110,6 +105,11 @@ public class Square {
      */
     public void draw(float[] mvpMatrix) {
         //Log.e(TAG, ": Hello ");
+
+        int mPositionHandle;
+        int mMVPMatrixHandle;
+        int mColorHandle;
+        final int vertexStride = FLOATS_PER_VERTEX * BYTES_PER_FLOAT; // 4 bytes per vertex
 
         // Add program to OpenGL environment
         GLES20.glUseProgram(mProgram);
